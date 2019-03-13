@@ -10,7 +10,7 @@ def load_data():
     train_data = pd.read_csv(train_data_path)
     train_y = train_data.loc[:, "target"]
     train_x = train_data.iloc[:, 2:]
-    test_x = test_data.iloc[:, 1:]
+    test_x = test_data
 
     return train_x, train_y, test_x
 
