@@ -69,7 +69,7 @@ def train():
     #                           write_graph=True, write_images=False)  # adding tensorboard in callbacks
     hist = model.fit([X_train], Y_train,
                      validation_data=([X_valid], Y_valid),
-                     epochs=15, batch_size=16, shuffle=True,
+                     epochs=15, batch_size=64, shuffle=True,
                      callbacks=[early_stopping, model_checkpoint], verbose=1)
 
     for a, b, c in os.walk(os.path.dirname(best_model_path)):
@@ -89,6 +89,18 @@ def train():
 
 def pred(model_path):
     model = load_model(model_path)
+
+    preds = model.predict([X_valid], batch_size=32, verbose=1)
+    submission = pd.DataFrame({"ground_truth": Y_valid, "result": preds.ravel()})
+    from sklearn.metrics import auc, roc_curve
+    valid_auc = ""
+    if submission["ground_truth"].shape == submission["result"].shape:
+        fpr, tpr, thresholds = roc_curve(submission['ground_truth'], submission['result'], pos_label=1)
+        valid_auc = auc(fpr, tpr)
+    print("_auc_{}".format(valid_auc))
+    submission.to_csv(model_path + "_auc_{:.4f}".format(valid_auc) + "_result.csv", sep="\t", index=False)
+
+
     test_dl = test_X.iloc[:,1:].values
     preds = model.predict([test_dl], batch_size=32, verbose=1)
     submission = pd.DataFrame({"ID_code": test_X["ID_code"], "target": preds.ravel()})
@@ -102,7 +114,7 @@ def pred(model_path):
 
 
 if __name__=="__main__":
-    train()
-    # pred("runs/1552231586/checkpoints/model/best_model_val_0.909.h5")
+    # train()
+    pred("runs/1552492532/checkpoints/model/best_model_val_0.912.h5")
 
 
